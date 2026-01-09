@@ -3,8 +3,7 @@ import database from '../utils/db';
 const sha1 = require('js-sha1');
 
 exports.postNew = async (req, res) => {
-  const { email } = req.body;
-  const { password } = req.body;
+  const { email, password } = req.body;
 
   if (!email) return res.status(400).json({ error: 'Missing email' });
   if (!password) return res.status(400).json({ error: 'Missing password' });
