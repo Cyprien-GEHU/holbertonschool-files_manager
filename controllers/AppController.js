@@ -9,10 +9,10 @@ exports.getStatus = (req, res) => {
   res.status(200).json(status);
 };
 
-exports.getStats = (req, res) => {
+exports.getStats = async (req, res) => {
   const stats = {
-    users: db.nbUsers(),
-    files: db.nbFiles(),
+    users: await db.nbUsers(),
+    files: await db.nbFiles(),
   };
   res.status(200).json(stats);
 };
