@@ -1,5 +1,5 @@
+import crypto from 'crypto';
 import database from '../utils/db';
-import crypto from 'crypto'
 
 exports.postNew = async (req, res) => {
   const { email, password } = req.body;
