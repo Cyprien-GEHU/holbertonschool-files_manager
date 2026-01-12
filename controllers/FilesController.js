@@ -23,6 +23,9 @@ exports.postUpload = async (req, res) => {
   if (type !== 'folder' && !data) return res.status(400).json({ error: 'Missing data' });
 
   if (parentId !== 0) {
+    if (!ObjectId.isValid(parentId)) {
+      return res.status(400).json({ error: 'Parent Not found' });
+    }
     const fileParent = await database.db.collection('files').findOne({ _id: new ObjectId(parentId) });
 
     if (!fileParent) return res.status(400).json({ error: 'Parent Not found' });
