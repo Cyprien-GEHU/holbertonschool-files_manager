@@ -22,7 +22,7 @@ router.get('/disconnect', AuthController.getDisconnect);
 router.post('/files', FilesControlle.postUpload);
 router.get('/files/:id', FilesControlle.getShow);
 router.get('/files', FilesControlle.getIndex);
-router.get('/files/:id/publish', FilesControlle.putPublish);
-router.get('/files/:id/unpublish', FilesControlle.putUnpublish);
+router.put('/files/:id/publish', FilesControlle.putPublish);
+router.put('/files/:id/unpublish', FilesControlle.putUnpublish);
 
 module.exports = router;
