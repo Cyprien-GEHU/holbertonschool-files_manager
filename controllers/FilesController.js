@@ -119,3 +119,57 @@ exports.getIndex = async (req, res) => {
 
   return res.status(200).json(listFile);
 };
+
+exports.putPublish = async (req, res) => {
+  const token = req.header('X-Token');
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+  const userId = await redis.get(`auth_${token}`);
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+  const paramsId = req.params.id;
+  const putResult = await database.db.collection('files').findOneAndUpdate(
+    { _id: new ObjectId(paramsId), userId: new ObjectId(userId) },
+    { $set: { isPublic: true } },
+    { returnDocument: 'after' },
+  );
+
+  if (!putResult.value) return res.status(404).json({ error: 'Not found' });
+
+  const file = putResult.value;
+  return res.status(200).json({
+    id: file._id,
+    userId: file.userId,
+    name: file.name,
+    type: file.type,
+    isPublic: file.isPublic,
+    parentId: file.parentId,
+  });
+};
+
+exports.putUnpublish = async (req, res) => {
+  const token = req.header('X-Token');
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+  const userId = await redis.get(`auth_${token}`);
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+  const paramsId = req.params.id;
+  const putResult = await database.db.collection('files').findOneAndUpdate(
+    { _id: new ObjectId(paramsId), userId: new ObjectId(userId) },
+    { $set: { isPublic: false } },
+    { returnDocument: 'after' },
+  );
+
+  if (!putResult.value) return res.status(404).json({ error: 'Not found' });
+
+  const file = putResult.value;
+  return res.status(200).json({
+    id: file._id,
+    userId: file.userId,
+    name: file.name,
+    type: file.type,
+    isPublic: file.isPublic,
+    parentId: file.parentId,
+  });
+};
