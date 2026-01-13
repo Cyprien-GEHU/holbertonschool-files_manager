@@ -57,3 +57,65 @@ exports.postUpload = async (req, res) => {
     id: resultdb.insertedId, userId, name, type, isPublic, parentId,
   });
 };
+
+exports.getShow = async (req, res) => {
+  const token = req.header('X-Token');
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+  const userId = await redis.get(`auth_${token}`);
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+  const paramsId = req.params.id;
+  let idObject;
+  try {
+    idObject = new ObjectId(paramsId);
+  } catch (err) {
+    res.status(404).json({ err: 'Not found' });
+  }
+
+  const file = await database.db.collection('files').findOne({ _id: idObject, userId: new ObjectId(userId) });
+  if (!file) return res.status(404).json({ error: 'Not found' });
+
+  return res.json({
+    id: file._id,
+    userId: file.userId,
+    name: file.name,
+    type: file.type,
+    isPublic: file.isPublic,
+    parentId: file.parentId,
+  });
+};
+
+exports.getIndex = async (req, res) => {
+  const token = req.header('X-Token');
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+  const userId = await redis.get(`auth_${token}`);
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+  const page = Number(req.query.page) || 0;
+  const itemMax = 20;
+
+  const check = { userId: new ObjectId(userId) };
+  if (req.query.parentId !== undefined) {
+    const { parentId } = req.query;
+    check.parentId = parentId === '0' ? 0 : new ObjectId(parentId);
+  }
+
+  const files = await database.db.collection('files').aggregate([
+    { $match: check },
+    { $skip: page * itemMax },
+    { $limit: itemMax },
+  ]).toArray();
+
+  const listFile = files.map((data) => ({
+    id: data._id,
+    userId: data.userId,
+    name: data.name,
+    type: data.type,
+    isPublic: data.isPublic,
+    parentId: data.parentId,
+  }));
+
+  return res.status(200).json(listFile);
+};
