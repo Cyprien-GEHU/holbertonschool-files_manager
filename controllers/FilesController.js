@@ -124,12 +124,7 @@ exports.putPublish = async (req, res) => {
   const token = req.header('X-Token');
   if (!token) return res.status(401).json({ error: 'Unauthorized' });
 
-  let userId;
-  try {
-    userId = await redis.get(`auth_${token}`);
-  } catch (err) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+  const userId = await redis.get(`auth_${token}`);
   if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
   const paramsId = req.params.id;
@@ -156,12 +151,7 @@ exports.putUnpublish = async (req, res) => {
   const token = req.header('X-Token');
   if (!token) return res.status(401).json({ error: 'Unauthorized' });
 
-  let userId;
-  try {
-    userId = await redis.get(`auth_${token}`);
-  } catch (err) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+  const userId = await redis.get(`auth_${token}`);
   if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
   const paramsId = req.params.id;
