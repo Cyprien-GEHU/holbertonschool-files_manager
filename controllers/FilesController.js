@@ -3,10 +3,12 @@ import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
 import mime from 'mime-types';
+import Queue from 'bull';
 import database from '../utils/db';
 import redis from '../utils/redis';
 
 const FolderPath = process.env.FOLDER_PATH || '/tmp/files_manager';
+const fileQueue = new Queue('fileQueue');
 
 exports.postUpload = async (req, res) => {
   const token = req.header('X-Token');
@@ -54,6 +56,8 @@ exports.postUpload = async (req, res) => {
   file.pathLocal = pathLocal;
 
   const resultdb = await database.db.collection('files').insertOne(file);
+
+  await fileQueue.add({ userId, fileId: resultdb.insertedId.toString() });
   return res.status(201).json({
     id: resultdb.insertedId, userId, name, type, isPublic, parentId,
   });
@@ -176,6 +180,7 @@ exports.putUnpublish = async (req, res) => {
 };
 
 exports.getFile = async (req, res) => {
+  const { size } = req.query;
   let fileId;
   try {
     fileId = new ObjectId(req.params.id);
@@ -200,9 +205,13 @@ exports.getFile = async (req, res) => {
 
   if (!file.pathLocal) return res.status(404).json({ error: 'Not found' });
 
-  const absoPath = path.resolve(file.pathLocal);
+  let pathFile = file.pathLocal;
+  if (size && ['100', '250', '500'].includes(size)) {
+    pathFile = `${file.pathLocal}_${size}`;
+  }
+
+  const absoPath = path.resolve(pathFile);
   if (!existsSync(absoPath)) return res.status(404).json({ error: 'Not found' });
-  console.log('PATH:', absoPath, existsSync(absoPath));
 
   const mimeType = mime.lookup(file.name) || 'application/octet-stream';
   res.setHeader('Content-Type', mimeType);
