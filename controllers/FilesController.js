@@ -197,9 +197,10 @@ exports.getFile = async (req, res) => {
 
   const absoPath = path.resolve(file.pathLocal);
   if (!existsSync(absoPath)) return res.status(404).json({ error: 'Not found' });
+  console.log('PATH:', absoPath, existsSync(absoPath));
 
   const mimeType = mime.lookup(file.name) || 'application/octet-stream';
-  res.setHeader('Content-type', mimeType);
+  res.setHeader('Content-Type', mimeType);
 
   try {
     return res.sendFile(absoPath);
