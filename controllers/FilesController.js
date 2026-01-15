@@ -178,6 +178,7 @@ exports.putUnpublish = async (req, res) => {
 exports.getFile = async (req, res) => {
   const paramsId = req.params.id;
 
+
   const file = await database.db.collection('files').findOne({ _id: new ObjectId(paramsId) });
   if (!file) {
     return res.status(404).json({ error: 'Not found' });
